@@ -62,17 +62,27 @@ def reset_rpa_state():
 
 # Func - DATE for GET tr & td
 def get_date_info(selected_date):
+    # วันที่ 1 ของเดือนที่เลือก
+    start_of_month = selected_date.replace(day=1)
+    start_column = (start_of_month.weekday() + 1) % 7 + 1  # หาตำแหน่งคอลัมน์ของวันที่ 1
+
     day = selected_date.day
-    column = (selected_date.weekday() + 1) % 7 + 1
-    row = ((day + column - 2) // 7) + 1
+    column = (selected_date.weekday() + 1) % 7 + 1  # ตำแหน่งของวันนั้นในสัปดาห์
+    row = ((day + start_column - 2) // 7) + 1  # ปรับค่า row โดยอิงจากวันที่ 1 ของเดือน
+
     return day, column, row
 
-# fday , fcolumn , frow
+# รับค่าจากผู้ใช้
 selected_fday = st.date_input("เลือกวันแรก", datetime.date.today())
 selected_lday = st.date_input("เลือกวันสุดท้าย", datetime.date.today())
+
+# คำนวณจำนวนวัน
 period_day = (selected_lday - selected_fday).days + 1
+
+# ดึงค่าตำแหน่งวันแรกและวันสุดท้าย
 fday, fcolumn, frow = get_date_info(selected_fday)
 lday, lcolumn, lrow = get_date_info(selected_lday)
+
 
 st.write(f"คุณเลือกวันที่: {selected_fday} ถึงวันที่ {selected_lday}")
 # st.write(f"ตำแหน่งในตาราง วันแรก: วันที่ {fday}, แถวที่ {frow}, คอลัมน์ {fcolumn}")
@@ -93,7 +103,6 @@ torch.backends.cudnn.enabled = True
 # Func - Load YOLOv8 Model only once
 def load_model():
     model_path = "best11_50_8.pt"
-    # model_path = "best8_100_16.pt"
     model = YOLO(model_path)
     model.to("cuda" if torch.cuda.is_available() else "cpu") # ส่งโมเดลไปที่ GPU ถ้ามี
     st.sidebar.write(f"YOLO is running on: {next(model.parameters()).device}")
@@ -150,11 +159,11 @@ def process_image_RPA(uploaded_file):
                 # Condition 1: If "correct" exists with other classes
                 final_class = "not sure"
                 final_confidence = max_confidence["correct"]
-            elif "correct" in detected_classes and max_confidence["correct"] < 60:
+            elif "correct" in detected_classes and max_confidence["correct"] < 80:
                 # New Condition: If "correct" confidence is less than 80%
                 final_class = "not sure"
                 final_confidence = max_confidence["correct"]
-            elif "incorrect" in detected_classes and max_confidence["incorrect"] < 60:
+            elif "incorrect" in detected_classes and max_confidence["incorrect"] < 80:
                 # New Condition: If "correct" confidence is less than 80%
                 final_class = "not sure"
                 final_confidence = max_confidence["incorrect"]
@@ -199,7 +208,7 @@ if st.button("RPA"):
         try:
             st.sidebar.write("Running RPA script to fetch images...")
             result = subprocess.run([
-                "python", "rpa.py", str(frow), str(fcolumn), str(), 
+                "python", "rpa_edit.py", str(frow), str(fcolumn), str(), 
                 str(selected_fday.month), str(selected_fday.year),str(period_day)
             ], capture_output=True, text=True, encoding="utf-8")
             
