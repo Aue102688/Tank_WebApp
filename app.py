@@ -208,7 +208,7 @@ if st.button("RPA"):
         try:
             st.sidebar.write("Running RPA script to fetch images...")
             result = subprocess.run([
-                "python", "rpa_edit.py", str(frow), str(fcolumn), str(), 
+                "python", "rpa.py", str(frow), str(fcolumn), str(), 
                 str(selected_fday.month), str(selected_fday.year),str(period_day)
             ], capture_output=True, text=True, encoding="utf-8")
             

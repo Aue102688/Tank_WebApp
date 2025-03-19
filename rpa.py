@@ -236,11 +236,22 @@ try:
                             # Topic 1 - end
                             for row_index in range(1, total_rows + 1):
                                 try:
-                                    topic_xpath = f'/html/body/app-root/app-e-service-table/div/app-table-contract/div/table/tbody/tr[{row_index}]/td[5]'
-                                    topic_link = driver.find_element(By.XPATH, topic_xpath)
+                                    status_xpath = f'/html/body/app-root/app-e-service-table/div/app-table-contract/div/table/tbody/tr[{row_index}]/td[1]'
+                                    status_element = driver.find_element(By.XPATH, status_xpath)
+                                    status_text = status_element.text.strip()
 
-                                    count_row_now += 1
-                                    print(f"จำนวนแถวที่ทำไปแล้ว {count_row_now}")
+                                    if status_text == "ยังไม่เข้า":
+                                        print(f"Skipping row {row_index} as status is 'ยังไม่เข้า'")
+                                        continue  # ข้ามไปแถวถัดไป
+
+
+                                    if status_text == "ตรงแผน":
+                                        topic_xpath = f'/html/body/app-root/app-e-service-table/div/app-table-contract/div/table/tbody/tr[{row_index}]/td[5]'
+                                        topic_link = driver.find_element(By.XPATH, topic_xpath)
+                                        print(f"Processing row {row_index} as status is 'ตรงแผน'")
+                                        
+                                        count_row_now += 1
+                                        print(f"จำนวนแถวที่ทำไปแล้ว {count_row_now}")
 
                                     if row_index == rows_count:
 
